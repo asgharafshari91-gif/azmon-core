@@ -1,0 +1,524 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -26,7 +26,7 @@
+ #=============================
+ # Project / Package metadata
+ #=============================
+-set(CLIENT_NAME "Bitcoin Core")
++set(CLIENT_NAME "AZMON Core")
+ set(CLIENT_VERSION_MAJOR 30)
+ set(CLIENT_VERSION_MINOR 4)
+ set(CLIENT_VERSION_BUILD 0)
+diff --git a/src/chainparams.cpp b/src/chainparams.cpp
+--- a/src/chainparams.cpp
++++ b/src/chainparams.cpp
+@@ -139,6 +139,7 @@
+ 
+ void SelectParams(const ChainType chain)
+ {
++    if (chain != ChainType::REGTEST && chain != ChainType::TESTNET4 && chain != ChainType::MAIN) throw std::runtime_error("Bitcoin testnet3 and signet are disabled in AZMON.");
+     SelectBaseParams(chain);
+     globalChainParams = CreateChainParams(gArgs, chain);
+ }
+diff --git a/src/chainparamsbase.cpp b/src/chainparamsbase.cpp
+--- a/src/chainparamsbase.cpp
++++ b/src/chainparamsbase.cpp
+@@ -10,6 +10,7 @@
+ #include <util/chaintype.h>
+ 
+ #include <cassert>
++#include <stdexcept>
+ 
+ void SetupChainParamsBaseOptions(ArgsManager& argsman)
+ {
+@@ -41,21 +42,22 @@
+ {
+     switch (chain) {
+     case ChainType::MAIN:
+-        return std::make_unique<CBaseChainParams>("", 8332);
++        return std::make_unique<CBaseChainParams>("azmon-mainnet", 29754);
+     case ChainType::TESTNET:
+         return std::make_unique<CBaseChainParams>("testnet3", 18332);
+     case ChainType::TESTNET4:
+-        return std::make_unique<CBaseChainParams>("testnet4", 48332);
++        return std::make_unique<CBaseChainParams>("azmon-testnet1", 29554);
+     case ChainType::SIGNET:
+         return std::make_unique<CBaseChainParams>("signet", 38332);
+     case ChainType::REGTEST:
+-        return std::make_unique<CBaseChainParams>("regtest", 18443);
++        return std::make_unique<CBaseChainParams>("regtest", 29443);
+     }
+     assert(false);
+ }
+ 
+ void SelectBaseParams(const ChainType chain)
+ {
++    if (chain != ChainType::REGTEST && chain != ChainType::TESTNET4 && chain != ChainType::MAIN) throw std::runtime_error("Bitcoin testnet3 and signet are disabled in AZMON.");
+     globalChainBaseParams = CreateBaseChainParams(chain);
+     gArgs.SelectConfigNetwork(ChainTypeToString(chain));
+ }
+diff --git a/src/common/args.cpp b/src/common/args.cpp
+--- a/src/common/args.cpp
++++ b/src/common/args.cpp
+@@ -745,11 +745,11 @@
+ #ifdef WIN32
+     // Windows
+     // Check for existence of datadir in old location and keep it there
+-    fs::path legacy_path = GetSpecialFolderPath(CSIDL_APPDATA) / "Bitcoin";
++    fs::path legacy_path = GetSpecialFolderPath(CSIDL_APPDATA) / "AzmonDev";
+     if (fs::exists(legacy_path)) return legacy_path;
+ 
+     // Otherwise, fresh installs can start in the new, "proper" location
+-    return GetSpecialFolderPath(CSIDL_LOCAL_APPDATA) / "Bitcoin";
++    return GetSpecialFolderPath(CSIDL_LOCAL_APPDATA) / "AzmonDev";
+ #else
+     fs::path pathRet;
+     char* pszHome = getenv("HOME");
+@@ -759,10 +759,10 @@
+         pathRet = fs::path(pszHome);
+ #ifdef __APPLE__
+     // macOS
+-    return pathRet / "Library/Application Support/Bitcoin";
++    return pathRet / "Library/Application Support/AzmonDev";
+ #else
+     // Unix-like
+-    return pathRet / ".bitcoin";
++    return pathRet / ".azmon-dev";
+ #endif
+ #endif
+ }
+diff --git a/src/consensus/amount.h b/src/consensus/amount.h
+--- a/src/consensus/amount.h
++++ b/src/consensus/amount.h
+@@ -23,7 +23,7 @@
+  * critical; in unusual circumstances like a(nother) overflow bug that allowed
+  * for the creation of coins out of thin air modification could lead to a fork.
+  * */
+-static constexpr CAmount MAX_MONEY = 21000000 * COIN;
++static constexpr CAmount MAX_MONEY = 105000000 * COIN;
+ inline bool MoneyRange(const CAmount& nValue) { return (nValue >= 0 && nValue <= MAX_MONEY); }
+ 
+ #endif // BITCOIN_CONSENSUS_AMOUNT_H
+diff --git a/src/kernel/chainparams.cpp b/src/kernel/chainparams.cpp
+--- a/src/kernel/chainparams.cpp
++++ b/src/kernel/chainparams.cpp
+@@ -86,113 +86,72 @@
+         consensus.signet_blocks = false;
+         consensus.signet_challenge.clear();
+         consensus.nSubsidyHalvingInterval = 210000;
+-        consensus.script_flag_exceptions.emplace( // BIP16 exception
+-            uint256{"00000000000002dc756eebf4f49723ed8d30cc28a5f108eb94b1ba88ac4f9c22"}, SCRIPT_VERIFY_NONE);
+-        consensus.script_flag_exceptions.emplace( // Taproot exception
+-            uint256{"0000000000000000000f14c35b2d841e986ab5441de8c585d5ffe55ea1e395ad"}, SCRIPT_VERIFY_P2SH | SCRIPT_VERIFY_WITNESS);
+-        consensus.BIP34Height = 227931;
+-        consensus.BIP34Hash = uint256{"000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8"};
+-        consensus.BIP65Height = 388381; // 000000000000000004c2b624ed5d7756c508d90fd0da2c7c679febfa6c4735f0
+-        consensus.BIP66Height = 363725; // 00000000000000000379eaa19dce8c9b722d46ae6a57c2f1a988119488b50931
+-        consensus.CSVHeight = 419328; // 000000000000000004a1b34462cb8aeebd5799177f7a29cf28f2d1961716b5b5
+-        consensus.SegwitHeight = 481824; // 0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893
+-        consensus.MinBIP9WarningHeight = 483840; // segwit activation height + miner confirmation window
+-        consensus.powLimit = uint256{"00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
++        consensus.BIP34Height = 1;
++        consensus.BIP34Hash = uint256{};
++        consensus.BIP65Height = 1;
++        consensus.BIP66Height = 1;
++        consensus.CSVHeight = 1;
++        consensus.SegwitHeight = 1;
++        consensus.MinBIP9WarningHeight = 0;
++        consensus.powLimit = uint256{"00000005e0a50000000000000000000000000000000000000000000000000000"};
+         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+         consensus.nPowTargetSpacing = 10 * 60;
+         consensus.fPowAllowMinDifficultyBlocks = false;
+         consensus.enforce_BIP94 = false;
+         consensus.fPowNoRetargeting = false;
++
+         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
+         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = Consensus::BIP9Deployment::NEVER_ACTIVE;
+         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
+         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].min_activation_height = 0; // No activation delay
+-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].threshold = 1815; // 90%
++        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].threshold = 1512; // 75%
+         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].period = 2016;
+ 
+         // Deployment of Taproot (BIPs 340-342)
+         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].bit = 2;
+-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartTime = 1619222400; // April 24th, 2021
+-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeout = 1628640000; // August 11th, 2021
+-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].min_activation_height = 709632; // Approximately November 12th, 2021
+-        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1815; // 90%
++        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nStartTime = Consensus::BIP9Deployment::ALWAYS_ACTIVE;
++        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].nTimeout = Consensus::BIP9Deployment::NO_TIMEOUT;
++        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].min_activation_height = 0; // No activation delay
++        consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1512; // 75%
+         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
+ 
+-        consensus.nMinimumChainWork = uint256{"0000000000000000000000000000000000000000dee8e2a309ad8a9820433c68"};
+-        consensus.defaultAssumeValid = uint256{"00000000000000000000611fd22f2df7c8fbd0688745c3a6c3bb5109cc2a12cb"}; // 912683
+-
+-        /**
+-         * The message start string is designed to be unlikely to occur in normal data.
+-         * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
+-         * a large 32-bit integer with any alignment.
+-         */
+-        pchMessageStart[0] = 0xf9;
+-        pchMessageStart[1] = 0xbe;
+-        pchMessageStart[2] = 0xb4;
+-        pchMessageStart[3] = 0xd9;
+-        nDefaultPort = 8333;
+-        nPruneAfterHeight = 100000;
+-        m_assumed_blockchain_size = 810;
+-        m_assumed_chain_state_size = 14;
+-
+-        genesis = CreateGenesisBlock(1231006505, 2083236893, 0x1d00ffff, 1, 50 * COIN);
++        consensus.nMinimumChainWork = uint256{};
++        consensus.defaultAssumeValid = uint256{};
++
++        pchMessageStart[0] = 0xa7;
++        pchMessageStart[1] = 0x5a;
++        pchMessageStart[2] = 0x4d;
++        pchMessageStart[3] = 0x4e;
++        nDefaultPort = 29755;
++        nPruneAfterHeight = 1000;
++        m_assumed_blockchain_size = 0;
++        m_assumed_chain_state_size = 0;
++
++        // AZMON mainnet genesis. Zero, unspendable output; no allocation or migrated balances.
++        genesis = CreateGenesisBlock("AZMON 16/Nov/2026 - Azimden dogdu. Open rules. Proof of work.", CScript() << OP_RETURN, 1794791700, 2798143681, 0x1d05e0a5, 1, 0);
+         consensus.hashGenesisBlock = genesis.GetHash();
+-        assert(consensus.hashGenesisBlock == uint256{"000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"});
+-        assert(genesis.hashMerkleRoot == uint256{"4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"});
+-
+-        // Note that of those which support the service bits prefix, most only support a subset of
+-        // possible options.
+-        // This is fine at runtime as we'll fall back to using them as an addrfetch if they don't support the
+-        // service bits we want, but we should get them updated to support all service bits wanted by any
+-        // release ASAP to avoid it where possible.
+-        vSeeds.emplace_back("dnsseed.bluematt.me."); // Matt Corallo, only supports x9
+-        vSeeds.emplace_back("seed.bitcoin.jonasschnelli.ch."); // Jonas Schnelli, only supports x1, x5, x9, and xd
+-        vSeeds.emplace_back("seed.btc.petertodd.net."); // Peter Todd, only supports x1, x5, x9, and xd
+-        vSeeds.emplace_back("seed.bitcoin.sprovoost.nl."); // Sjors Provoost
+-        vSeeds.emplace_back("dnsseed.emzy.de."); // Stephan Oeste
+-        vSeeds.emplace_back("seed.bitcoin.wiz.biz."); // Jason Maurice
+-        vSeeds.emplace_back("seed.mainnet.achownodes.xyz."); // Ava Chow, only supports x1, x5, x9, x49, x809, x849, xd, x400, x404, x408, x448, xc08, xc48, x40c
+-
+-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,0);
+-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,5);
+-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,128);
+-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+-
+-        bech32_hrp = "bc";
+-
+-        vFixedSeeds = std::vector<uint8_t>(std::begin(chainparams_seed_main), std::end(chainparams_seed_main));
++        assert(consensus.hashGenesisBlock == uint256{"000000057eacbad83bbf08d90a98403e0bcfc5bd8566fb9d92962786096d274c"});
++        assert(genesis.hashMerkleRoot == uint256{"8188b99469531af859f87866124fe9473cb65c661b831e821e3d5f6830baff1c"});
++
++        vFixedSeeds.clear();
++        vSeeds.clear();
++        // nodes with support for servicebits filtering should be at the top
++
++        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,23);
++        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,50);
++        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,151);
++        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0xa7, 0x4d, 0x01};
++        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0xa7, 0x4d, 0x02};
++
++        bech32_hrp = "az";
++
+ 
+         fDefaultConsistencyChecks = false;
+         m_is_mockable_chain = false;
+ 
+-        m_assumeutxo_data = {
+-            {
+-                .height = 840'000,
+-                .hash_serialized = AssumeutxoHash{uint256{"a2a5521b1b5ab65f67818e5e8eccabb7171a517f9e2382208f77687310768f96"}},
+-                .m_chain_tx_count = 991032194,
+-                .blockhash = consteval_ctor(uint256{"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"}),
+-            },
+-            {
+-                .height = 880'000,
+-                .hash_serialized = AssumeutxoHash{uint256{"dbd190983eaf433ef7c15f78a278ae42c00ef52e0fd2a54953782175fbadcea9"}},
+-                .m_chain_tx_count = 1145604538,
+-                .blockhash = consteval_ctor(uint256{"000000000000000000010b17283c3c400507969a9c2afd1dcf2082ec5cca2880"}),
+-            },
+-            {
+-                .height = 910'000,
+-                .hash_serialized = AssumeutxoHash{uint256{"4daf8a17b4902498c5787966a2b51c613acdab5df5db73f196fa59a4da2f1568"}},
+-                .m_chain_tx_count = 1226586151,
+-                .blockhash = consteval_ctor(uint256{"0000000000000000000108970acb9522ffd516eae17acddcb1bd16469194a821"}),
+-            }
+-        };
+-
+-        chainTxData = ChainTxData{
+-            // Data from RPC: getchaintxstats 4096 00000000000000000000611fd22f2df7c8fbd0688745c3a6c3bb5109cc2a12cb
+-            .nTime    = 1756722903,
+-            .tx_count = 1235299397,
+-            .dTxRate  = 5.456290459519495,
+-        };
++        m_assumeutxo_data = {};
++        chainTxData = ChainTxData{.nTime = 0, .tx_count = 0, .dTxRate = 0};
++
+     }
+ };
+ 
+@@ -310,7 +269,7 @@
+         consensus.CSVHeight = 1;
+         consensus.SegwitHeight = 1;
+         consensus.MinBIP9WarningHeight = 0;
+-        consensus.powLimit = uint256{"00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
++        consensus.powLimit = uint256{"0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
+         consensus.nPowTargetTimespan = 14 * 24 * 60 * 60; // two weeks
+         consensus.nPowTargetSpacing = 10 * 60;
+         consensus.fPowAllowMinDifficultyBlocks = true;
+@@ -332,65 +291,43 @@
+         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].threshold = 1512; // 75%
+         consensus.vDeployments[Consensus::DEPLOYMENT_TAPROOT].period = 2016;
+ 
+-        consensus.nMinimumChainWork = uint256{"00000000000000000000000000000000000000000000034a4690fe592dc49c7c"};
+-        consensus.defaultAssumeValid = uint256{"000000000000000180a58e7fa3b0db84b5ea76377524894f53660d93ac839d9b"}; // 91000
+-
+-        pchMessageStart[0] = 0x1c;
+-        pchMessageStart[1] = 0x16;
+-        pchMessageStart[2] = 0x3f;
+-        pchMessageStart[3] = 0x28;
+-        nDefaultPort = 48333;
++        consensus.nMinimumChainWork = uint256{};
++        consensus.defaultAssumeValid = uint256{};
++
++        pchMessageStart[0] = 0xa7;
++        pchMessageStart[1] = 0x5a;
++        pchMessageStart[2] = 0x54;
++        pchMessageStart[3] = 0x31;
++        nDefaultPort = 29555;
+         nPruneAfterHeight = 1000;
+-        m_assumed_blockchain_size = 22;
+-        m_assumed_chain_state_size = 2;
+-
+-        const char* testnet4_genesis_msg = "03/May/2024 000000000000000000001ebd58c244970b3aa9d783bb001011fbe8ea8e98e00e";
+-        const CScript testnet4_genesis_script = CScript() << "000000000000000000000000000000000000000000000000000000000000000000"_hex << OP_CHECKSIG;
+-        genesis = CreateGenesisBlock(testnet4_genesis_msg,
+-                testnet4_genesis_script,
+-                1714777860,
+-                393743547,
+-                0x1d00ffff,
+-                1,
+-                50 * COIN);
++        m_assumed_blockchain_size = 0;
++        m_assumed_chain_state_size = 0;
++
++        // AZMON testnet genesis, independent of Bitcoin and AZMON regtest.
++        genesis = CreateGenesisBlock("AZMON Testnet 1 - 09/Nov/2026 - Azimden dogdu. No monetary value.", CScript() << OP_RETURN, 1794182400, 42636, 0x1f00ffff, 1, 0);
+         consensus.hashGenesisBlock = genesis.GetHash();
+-        assert(consensus.hashGenesisBlock == uint256{"00000000da84f2bafbbc53dee25a72ae507ff4914b867c565be350b0da8bf043"});
+-        assert(genesis.hashMerkleRoot == uint256{"7aa0a7ae1e223414cb807e40cd57e667b718e42aaf9306db9102fe28912b7b4e"});
++        assert(consensus.hashGenesisBlock == uint256{"0000cc1c8e4f0cde0a92d40091794d6ac9b295bc802837716adaed27afe67a72"});
++        assert(genesis.hashMerkleRoot == uint256{"3132fa73d161d4a145e243935d204b232d210aceb19aeeb499e3d34045975a1f"});
+ 
+         vFixedSeeds.clear();
+         vSeeds.clear();
+         // nodes with support for servicebits filtering should be at the top
+-        vSeeds.emplace_back("seed.testnet4.bitcoin.sprovoost.nl."); // Sjors Provoost
+-        vSeeds.emplace_back("seed.testnet4.wiz.biz."); // Jason Maurice
+-
+-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
+-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
+-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
+-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+-
+-        bech32_hrp = "tb";
+-
+-        vFixedSeeds = std::vector<uint8_t>(std::begin(chainparams_seed_testnet4), std::end(chainparams_seed_testnet4));
++
++        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,24);
++        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,51);
++        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,152);
++        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0xa7, 0x54, 0x01};
++        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0xa7, 0x54, 0x02};
++
++        bech32_hrp = "azt";
++
+ 
+         fDefaultConsistencyChecks = false;
+         m_is_mockable_chain = false;
+ 
+-        m_assumeutxo_data = {
+-            {
+-                .height = 90'000,
+-                .hash_serialized = AssumeutxoHash{uint256{"784fb5e98241de66fdd429f4392155c9e7db5c017148e66e8fdbc95746f8b9b5"}},
+-                .m_chain_tx_count = 11347043,
+-                .blockhash = consteval_ctor(uint256{"0000000002ebe8bcda020e0dd6ccfbdfac531d2f6a81457191b99fc2df2dbe3b"}),
+-            }
+-        };
+-
+-        chainTxData = ChainTxData{
+-            // Data from RPC: getchaintxstats 4096 000000000000000180a58e7fa3b0db84b5ea76377524894f53660d93ac839d9b
+-            .nTime    = 1752470331,
+-            .tx_count = 11414302,
+-            .dTxRate  = 0.2842619757327476,
+-        };
++        m_assumeutxo_data = {};
++        chainTxData = ChainTxData{.nTime = 0, .tx_count = 0, .dTxRate = 0};
++
+     }
+ };
+ 
+@@ -519,7 +456,7 @@
+         m_chain_type = ChainType::REGTEST;
+         consensus.signet_blocks = false;
+         consensus.signet_challenge.clear();
+-        consensus.nSubsidyHalvingInterval = 150;
++        consensus.nSubsidyHalvingInterval = 210000;
+         consensus.BIP34Height = 1; // Always active unless overridden
+         consensus.BIP34Hash = uint256();
+         consensus.BIP65Height = 1;  // Always active unless overridden
+@@ -551,11 +488,11 @@
+         consensus.nMinimumChainWork = uint256{};
+         consensus.defaultAssumeValid = uint256{};
+ 
+-        pchMessageStart[0] = 0xfa;
+-        pchMessageStart[1] = 0xbf;
+-        pchMessageStart[2] = 0xb5;
+-        pchMessageStart[3] = 0xda;
+-        nDefaultPort = 18444;
++        pchMessageStart[0] = 0xa7;
++        pchMessageStart[1] = 0x5a;
++        pchMessageStart[2] = 0x4d;
++        pchMessageStart[3] = 0x4e;
++        nDefaultPort = 29444;
+         nPruneAfterHeight = opts.fastprune ? 100 : 1000;
+         m_assumed_blockchain_size = 0;
+         m_assumed_chain_state_size = 0;
+@@ -586,40 +523,19 @@
+             consensus.vDeployments[deployment_pos].min_activation_height = version_bits_params.min_activation_height;
+         }
+ 
+-        genesis = CreateGenesisBlock(1296688602, 2, 0x207fffff, 1, 50 * COIN);
++        genesis = CreateGenesisBlock("AZMON 09/Nov/2026 Azimden dogdu. Local development only.", CScript() << OP_RETURN, 1794182400, 1, 0x207fffff, 1, 0);
+         consensus.hashGenesisBlock = genesis.GetHash();
+-        assert(consensus.hashGenesisBlock == uint256{"0f9188f13cb7b2c71f2a335e3a4fc328bf5beb436012afca590b1a11466e2206"});
+-        assert(genesis.hashMerkleRoot == uint256{"4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"});
++        assert(consensus.hashGenesisBlock == uint256{"0b0b32442b704d39fa46a3afb92ad6fbc6ddfc6033b832acc60072d0b064c152"});
++        assert(genesis.hashMerkleRoot == uint256{"5fa4606ad7f834dea1425f390b42c71cecc56a273b126eb223bb89c87632fefe"});
+ 
+         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
+         vSeeds.clear();
+-        vSeeds.emplace_back("dummySeed.invalid.");
++        // AZMON devnet has no seed servers.
+ 
+         fDefaultConsistencyChecks = true;
+         m_is_mockable_chain = true;
+ 
+-        m_assumeutxo_data = {
+-            {   // For use by unit tests
+-                .height = 110,
+-                .hash_serialized = AssumeutxoHash{uint256{"b952555c8ab81fec46f3d4253b7af256d766ceb39fb7752b9d18cdf4a0141327"}},
+-                .m_chain_tx_count = 111,
+-                .blockhash = consteval_ctor(uint256{"6affe030b7965ab538f820a56ef56c8149b7dc1d1c144af57113be080db7c397"}),
+-            },
+-            {
+-                // For use by fuzz target src/test/fuzz/utxo_snapshot.cpp
+-                .height = 200,
+-                .hash_serialized = AssumeutxoHash{uint256{"17dcc016d188d16068907cdeb38b75691a118d43053b8cd6a25969419381d13a"}},
+-                .m_chain_tx_count = 201,
+-                .blockhash = consteval_ctor(uint256{"385901ccbd69dff6bbd00065d01fb8a9e464dede7cfe0372443884f9b1dcf6b9"}),
+-            },
+-            {
+-                // For use by test/functional/feature_assumeutxo.py
+-                .height = 299,
+-                .hash_serialized = AssumeutxoHash{uint256{"d2b051ff5e8eef46520350776f4100dd710a63447a8e01d917e92e79751a63e2"}},
+-                .m_chain_tx_count = 334,
+-                .blockhash = consteval_ctor(uint256{"7cc695046fec709f8c9394b6f928f81e81fd3ac20977bb68760fa1faa7916ea2"}),
+-            },
+-        };
++        m_assumeutxo_data = {}; // No Bitcoin snapshots on AZMON.
+ 
+         chainTxData = ChainTxData{
+             .nTime = 0,
+@@ -627,13 +543,13 @@
+             .dTxRate = 0.001, // Set a non-zero rate to make it testable
+         };
+ 
+-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,111);
+-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,196);
+-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
+-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x35, 0x87, 0xCF};
+-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x35, 0x83, 0x94};
+-
+-        bech32_hrp = "bcrt";
++        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,23);
++        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,50);
++        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,151);
++        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0xa7, 0x4d, 0x01};
++        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0xa7, 0x4d, 0x02};
++
++        bech32_hrp = "azrt";
+     }
+ };
+ 
+diff --git a/src/pow.cpp b/src/pow.cpp
+--- a/src/pow.cpp
++++ b/src/pow.cpp
+@@ -75,8 +75,14 @@
+         bnNew.SetCompact(pindexLast->nBits);
+     }
+ 
+-    bnNew *= nActualTimespan;
+-    bnNew /= params.nPowTargetTimespan;
++    // AZMON: the easier testnet target can overflow a 256-bit intermediate
++    // in target * timespan. Preserve exact floor division using quotient
++    // and remainder. Retarget-enabled networks have powLimit <= 2^240,
++    // so the final (at most 4x) target and both terms fit in 256 bits.
++    const arith_uint256 divisor{static_cast<uint64_t>(params.nPowTargetTimespan)};
++    const arith_uint256 quotient = bnNew / divisor;
++    const arith_uint256 remainder = bnNew - quotient * divisor;
++    bnNew = quotient * nActualTimespan + (remainder * nActualTimespan) / divisor;
+ 
+     if (bnNew > bnPowLimit)
+         bnNew = bnPowLimit;
+@@ -98,11 +104,19 @@
+         arith_uint256 observed_new_target;
+         observed_new_target.SetCompact(new_nbits);
+ 
++        // AZMON: direct target * timespan can overflow for low-difficulty
++        // bootstrap targets. Keep the exact floor division with q/r terms.
++        const arith_uint256 divisor{static_cast<uint64_t>(params.nPowTargetTimespan)};
++        const auto scale_target = [&](const arith_uint256& base, int64_t span) {
++            const arith_uint256 quotient = base / divisor;
++            const arith_uint256 remainder = base - quotient * divisor;
++            return quotient * span + (remainder * span) / divisor;
++        };
++
+         // Calculate the largest difficulty value possible:
+         arith_uint256 largest_difficulty_target;
+         largest_difficulty_target.SetCompact(old_nbits);
+-        largest_difficulty_target *= largest_timespan;
+-        largest_difficulty_target /= params.nPowTargetTimespan;
++        largest_difficulty_target = scale_target(largest_difficulty_target, largest_timespan);
+ 
+         if (largest_difficulty_target > pow_limit) {
+             largest_difficulty_target = pow_limit;
+@@ -117,8 +131,7 @@
+         // Calculate the smallest difficulty value possible:
+         arith_uint256 smallest_difficulty_target;
+         smallest_difficulty_target.SetCompact(old_nbits);
+-        smallest_difficulty_target *= smallest_timespan;
+-        smallest_difficulty_target /= params.nPowTargetTimespan;
++        smallest_difficulty_target = scale_target(smallest_difficulty_target, smallest_timespan);
+ 
+         if (smallest_difficulty_target > pow_limit) {
+             smallest_difficulty_target = pow_limit;
+diff --git a/src/validation.cpp b/src/validation.cpp
+--- a/src/validation.cpp
++++ b/src/validation.cpp
+@@ -1933,7 +1933,7 @@
+     if (halvings >= 64)
+         return 0;
+ 
+-    CAmount nSubsidy = 50 * COIN;
++    CAmount nSubsidy = 250 * COIN;
+     // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
+     nSubsidy >>= halvings;
+     return nSubsidy;

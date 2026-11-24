@@ -1,0 +1,29 @@
+{
+  "status": "LOCAL_VALIDATION_PASS_DEPLOYMENT_PENDING",
+  "version": "0.3.0",
+  "base": "Bitcoin Core 30.4",
+  "genesis": "000000057eacbad83bbf08d90a98403e0bcfc5bd8566fb9d92962786096d274c",
+  "checks": {
+    "build": "PASS",
+    "source-identity": "PASS",
+    "source-reproduction": "PASS",
+    "consensus": "PASS",
+    "retarget-arithmetic": "PASS",
+    "difficulty-transition": "PASS",
+    "mainnet-smoke": "PASS",
+    "explorer-boundary": "PASS",
+    "explorer-live": "PASS",
+    "worker-auth.txt": "PASS",
+    "client-wire.txt": "PASS"
+  },
+  "publicLaunchPerformed": false,
+  "publicBlocksMined": 0,
+  "nativeMacBuild": "PENDING_FOR_NEW_RELEASE",
+  "VPSInstallation": "PENDING_FOR_NEW_RELEASE",
+  "websiteMainnetCutover": "PENDING",
+  "limits": [
+    "Not an independent security audit or full upstream regression suite",
+    "One actual final-target block; no full 2016-block final-target run",
+    "Local Linux checks do not replace native Mac/VPS and Internet deployment checks"
+  ]
+}

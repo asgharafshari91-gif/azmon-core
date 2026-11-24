@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "method": "Compile actual GetBlockSubsidy source with actual consensus/amount.h; isolated consensus parameter struct",
+  "checks": "64 eras, first/last block per era, 250/125/62.5 rewards, zero reward, money bounds",
+  "schedule_including_height_zero_base_units": 10499999996850000,
+  "issuance_heights_1_onward_base_units": 10499974996850000,
+  "note": "Genesis reward is zero and not spendable. Actual issuance excludes the height-zero 250-coin schedule slot. Miner underclaims and lost coins further reduce available supply."
+}

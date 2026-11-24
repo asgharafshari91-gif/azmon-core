@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Read-only HTTP route allowlist",
+    "Wrong genesis fails closed",
+    "Transaction-list cap 200",
+    "Rate limit and path-length cap",
+    "RPC failures never return fake live data",
+    "No wallet/write RPC methods called"
+  ],
+  "limitations": "Mock RPC boundary tests; real node API is tested by test_explorer_live.py"
+}

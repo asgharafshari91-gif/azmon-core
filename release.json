@@ -1,0 +1,76 @@
+{
+  "name": "AZMON",
+  "version": "0.3.0",
+  "stage": "MAINNET_PRELAUNCH_VALIDATION",
+  "publicLaunchPerformed": false,
+  "genesisFinalizedInSource": true,
+  "genesis": {
+    "message": "AZMON 16/Nov/2026 - Azimden dogdu. Open rules. Proof of work.",
+    "time": 1794791700,
+    "timeUTC": "2026-11-16T01:15:00+00:00",
+    "nonce": 2798143681,
+    "bits": "1d05e0a5",
+    "hash": "000000057eacbad83bbf08d90a98403e0bcfc5bd8566fb9d92962786096d274c",
+    "merkle": "8188b99469531af859f87866124fe9473cb65c661b831e821e3d5f6830baff1c",
+    "reward": 0,
+    "headerHex": "0100000000000000000000000000000000000000000000000000000000000000000000001cffba30685f3d1e821e831b665cb63c47e94f126678f859f81a536994b988811459fa6aa5e0051dc148c8a6",
+    "transactionHex": "01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4504ffff001d01043d415a4d4f4e2031362f4e6f762f32303236202d20417a696d64656e20646f6764752e204f70656e2072756c65732e2050726f6f66206f6620776f726b2effffffff010000000000000000016a00000000"
+  },
+  "monetaryRules": {
+    "maxMoney": 105000000,
+    "initialReward": 250,
+    "decimals": 8,
+    "halvingBlocks": 210000,
+    "coinbaseMaturity": 100,
+    "genesisReward": 0,
+    "issuanceMaximum": "104999749.96850000",
+    "premineAllocation": 0
+  },
+  "consensus": {
+    "algorithm": "SHA-256d",
+    "targetBlockSeconds": 600,
+    "retargetBlocks": 2016,
+    "retargetClamp": [
+      0.25,
+      4
+    ],
+    "allowMinimumDifficultyException": false,
+    "initialBits": "1d05e0a5",
+    "initialDifficulty": 0.17013725729447102
+  },
+  "network": {
+    "hrp": "az",
+    "p2p": 29755,
+    "rpc": 29754,
+    "dataSubdir": "azmon-mainnet",
+    "messageStart": "a75a4d4e",
+    "discovery": "Explicit peers only; no unverified seed domains"
+  },
+  "calibration": {
+    "rawBenchmarkHps": 1217906,
+    "rawBenchmarkSeconds": 30,
+    "assumedInitialMiners": 1,
+    "expectedHashesPerBlock": 730745106,
+    "note": "CPU SHA benchmark is an estimate, not a network hashrate guarantee. No ASIC exclusion."
+  },
+  "deploymentPending": [
+    "VPS build and installation of this exact source",
+    "Mac native build and cross-host synchronization of this exact genesis",
+    "Public TLS Stratum deployment with separate mainnet credentials",
+    "Website Auth/worker/telemetry and Explorer cutover to mainnet identity",
+    "Publish release and launch notice before persistent public mining starts"
+  ],
+  "limitations": [
+    "Experimental SOLO service: max 32 connections, fixed network difficulty; no VarDiff/version rolling/PPS/PPLNS",
+    "ASIC and hardware-wallet support not hardware verified",
+    "No independent security audit or full upstream regression suite",
+    "Only a new empty chain; RC/testnet balances never migrate",
+    "Cold backup is wallet custody, not proof that a hardware wallet supports AZMON",
+    "No exchange listing or price guarantee"
+  ],
+  "upstream": {
+    "tag": "v30.4",
+    "sourceArchiveSHA256": "e7798e0693eb2dac4ebaf8ce761540882e3a1041259bb9083f484880eca20014",
+    "signatureVerified": false
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "scope": "Actual final-genesis mainnet parameters in temporary isolated directories",
+  "checks": [
+    "Two native nodes use the distinct final genesis without RC opt-in",
+    "First block template has final initial bits and 250 AZMON reward",
+    "Actual SHA-256d block at final target accepted; peer synchronizes",
+    "Coinbase pays the generated az1 wallet; reward is immature",
+    "Both nodes restarted; chain tip and wallet reward persist",
+    "Native CPU client authorizes, receives refreshed work, sends heartbeat and exits cleanly after 70 seconds"
+  ],
+  "genesis": "000000057eacbad83bbf08d90a98403e0bcfc5bd8566fb9d92962786096d274c",
+  "initialBits": "1d05e0a5",
+  "ephemeralHeight": 1,
+  "publicBlocksMined": 0,
+  "limitations": [
+    "One block only; full 2016-block final-difficulty run not performed",
+    "Funded transfer, maturity and retarget were tested on RC1 separately; historical RC1 checks are not new release results",
+    "Local Linux x86_64 only; this release still requires VPS and native Mac checks",
+    "No public deployment or independent security audit"
+  ],
+  "cpuClientSummary": "Completed. Accepted: 0 Rejected: 0 Measured H/s: 852248"
+}

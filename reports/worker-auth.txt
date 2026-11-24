@@ -1,0 +1,1 @@
+PASS: local hashed credential, wrong token, immediate revocation and malformed data fail closed

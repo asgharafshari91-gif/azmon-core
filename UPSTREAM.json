@@ -1,0 +1,11 @@
+{
+  "project": "Bitcoin Core",
+  "tag": "v30.4",
+  "repository": "https://github.com/bitcoin/bitcoin",
+  "sourceURL": "https://bitcoincore.org/bin/bitcoin-core-30.4/bitcoin-30.4.tar.gz",
+  "sourceArchiveSHA256": "e7798e0693eb2dac4ebaf8ce761540882e3a1041259bb9083f484880eca20014",
+  "officialHTTPSChecksumVerified": true,
+  "tagSignatureVerified": false,
+  "azmonVersion": "0.3.0",
+  "azmonStage": "MAINNET_PRELAUNCH_VALIDATION"
+}

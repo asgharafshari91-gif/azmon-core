@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "cases": 60,
+  "method": "Actual C++ PermittedDifficultyTransition compiled with real arith_uint256; Python arbitrary-precision reference",
+  "checks": [
+    "Low bootstrap targets that overflow direct uint256 multiplication",
+    "Epoch boundary quarter/fourfold limits",
+    "Outside-boundary difficulty unchanged",
+    "Out-of-range transitions rejected"
+  ]
+}

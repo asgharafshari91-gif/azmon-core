@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "base": "Bitcoin Core 30.4 official source archive",
+  "changedFiles": [
+    "CMakeLists.txt",
+    "src/chainparams.cpp",
+    "src/chainparamsbase.cpp",
+    "src/common/args.cpp",
+    "src/consensus/amount.h",
+    "src/kernel/chainparams.cpp",
+    "src/pow.cpp",
+    "src/validation.cpp"
+  ],
+  "method": "Apply packaged patch to the exact checksum-verified official source archive; compare every bundled source byte",
+  "upstreamArchiveSHA256": "e7798e0693eb2dac4ebaf8ce761540882e3a1041259bb9083f484880eca20014",
+  "PGPSignatureVerified": false
+}

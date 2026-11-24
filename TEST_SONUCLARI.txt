@@ -1,0 +1,7 @@
+AZMON 0.3.0 — Yerel doğrulama geçti; canlı dağıtım bekleniyor.
+
+Yeni genesis, gerçek hedefte bir blok/ödül, iki düğüm senkronizasyonu, yeniden başlatma, 70 saniyelik CPU istemcisi, Explorer API, kaynak tekrar üretimi, 64 ödül dönemi ve zorluk aritmetiği kontrol edildi.
+
+Yeni sürüm VPS ve Mac üzerinde henüz kurulmadı. Kamuya açık ana ağ açılmadı. Tam 2016-blok yeni zorluk sınaması, bağımsız denetim ve tam upstream test paketi yapılmadı.
+
+Raporlar: reports/verification-summary.json ve ayrıntılı reports/*.json.

@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "scope": "Actual final-genesis node on Linux loopback",
+  "checks": [
+    "Explorer status pins the actual new genesis",
+    "Genesis block detail is readable without getrawtransaction genesis failure",
+    "Genesis reward is zero and its output is OP_RETURN",
+    "Operator deployment phase changes metadata only; chain identity remains verified"
+  ],
+  "publicDeployment": false
+}

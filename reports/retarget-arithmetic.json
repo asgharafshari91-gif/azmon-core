@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "cases": 18,
+  "method": "Actual C++ CalculateNextWorkRequired and arith_uint256.cpp compiled with isolated index/parameter stubs; compared to Python arbitrary-precision integers",
+  "coverage": "Three base targets; lower/upper clamp, fractional and unchanged interval; Bitcoin-style last-block base; BIP94 disabled on RC1"
+}

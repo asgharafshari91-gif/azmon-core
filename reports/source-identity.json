@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "scope": "Source/genesis identity only; not deployment approval",
+  "genesis": "000000057eacbad83bbf08d90a98403e0bcfc5bd8566fb9d92962786096d274c",
+  "bits": "1d05e0a5",
+  "genesisReward": 0,
+  "stage": "MAINNET_PRELAUNCH_VALIDATION",
+  "publicLaunchPerformed": false
+}
